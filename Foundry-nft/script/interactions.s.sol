@@ -8,6 +8,8 @@ contract MintBasicNFT is Script {
     string public constant PUG_URI =
         "ipfs://bafybeig37ioir76s7mg5oobetncojcm3c3hxasyd4rvid4jqhy4gkaheg4/?filename=0-PUG.json";
 
+        //ipfs://QmRP1DM7n2mFZSc61KqyGp6c4hDr8v7baPs72wtQPVHiZV => ss.json
+
     // Store the deployed contract address here or pass it dynamically
     address public basicNftAddress;
 
@@ -20,7 +22,7 @@ contract MintBasicNFT is Script {
 
     function getDeployedAddress() internal pure returns (address) {
         // Replace this with the actual deployed contract address
-        return 0x90e3320BACb83f402F8E20aEbD97b5F4240dE266; // Example address
+        return 0x90e3320BACb83f402F8E20aEbD97b5F4240dE266; // Deployed PUC address
     }
 
     function mintNftOnContract(address _basicNftAddress) public {
