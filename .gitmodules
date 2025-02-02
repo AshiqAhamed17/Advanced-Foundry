@@ -13,3 +13,6 @@
 [submodule "Foundry-defi-stablecoin/lib/forge-std"]
 	path = Foundry-defi-stablecoin/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "Foundry-defi-stablecoin/lib/openzeppelin-contracts"]
+	path = Foundry-defi-stablecoin/lib/openzeppelin-contracts
+	url = https://github.com/openzeppelin/openzeppelin-contracts
