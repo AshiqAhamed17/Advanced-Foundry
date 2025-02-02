@@ -6,5 +6,5 @@
     1. People can only mint the stablecoin with enough collateral (coded)
 
 3. Collateral: Exogenous (crypto)
-    1. ETH
-    2. BTC
+    1. WETH
+    2. WBTC
