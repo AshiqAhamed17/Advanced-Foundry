@@ -63,6 +63,7 @@ contract DSCEngine {
     error DSCEngine__NeedsMoreThanZero();
     error DSCEngine__TokenNotAllowed(address token);
     error DSCEngine__TransferFailed();
+    error DSCEngine__BreaksHealthFactor(uint256 healthFactor);
 
      ///////////////////
     // State Variables/
@@ -76,6 +77,10 @@ contract DSCEngine {
 
     uint256 private constant PRECISION = 1e18;
     uint256 private constant ADDITIONAL_FEED_PRECISION = 1e10;
+    uint256 private constant LIQUIDATION_THRESHOLD = 50;
+    uint256 private constant LIQUIDATION_PRECISION = 100;
+    uint256 private constant MIN_HEALTH_FACTOR = 1e18;
+    
 
     ///////////////////
     //    Events     //
@@ -157,7 +162,14 @@ contract DSCEngine {
     /////////////////////////////////////////////
 
 
-    function _revertIfHealthFactorIsBroken(address user) internal view {}
+    function _revertIfHealthFactorIsBroken(address user) internal view {
+
+        uint256 userHealthFactor = _healthFactor(user);
+
+        if(userHealthFactor < MIN_HEALTH_FACTOR) {
+            revert  DSCEngine__BreaksHealthFactor(userHealthFactor);
+        }
+    }
 
 
     /*
@@ -166,6 +178,10 @@ contract DSCEngine {
     */
     function _healthFactor(address user) private view returns (uint256) {
         (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInformation(user);
+
+        uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
+
+        return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;
     }
 
     function _getAccountInformation(address user) private view returns (uint256 totalDscMinted, uint256 collateralValueInUsd) {
@@ -189,12 +205,11 @@ contract DSCEngine {
     }
 
     function getUsdValue(address token, uint256 amount) public view returns (uint256) {
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds(token));
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
         (,int256 price,,,) = priceFeed.latestRoundData();
 
-        return ((uint256(price * 1e10) * amount) / 1e18);
+        return ((uint256(price) * ADDITIONAL_FEED_PRECISION) * amount) / PRECISION;
     }
-
 
 //-------------------------Yet to complete Func's ----------------------------------------------------------------
 
