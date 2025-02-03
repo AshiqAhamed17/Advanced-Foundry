@@ -64,6 +64,7 @@ contract DSCEngine {
     error DSCEngine__TokenNotAllowed(address token);
     error DSCEngine__TransferFailed();
     error DSCEngine__BreaksHealthFactor(uint256 healthFactor);
+    error DSCEngine__MintFailed();
 
      ///////////////////
     // State Variables/
@@ -154,6 +155,12 @@ contract DSCEngine {
 
     function mintDSC(uint256 amountDscToMint) public moreThanZero(amountDscToMint) {
         s_DSCMinted[msg.sender] += amountDscToMint;
+        // If the user minted too much ($100ETH, $150DSC)
+        _revertIfHealthFactorIsBroken(msg.sender);
+        bool isMinted = i_dsc.mint(msg.sender, amountDscToMint);
+        if(!isMinted) {
+            revert DSCEngine__MintFailed();
+        }
     }
 
 
