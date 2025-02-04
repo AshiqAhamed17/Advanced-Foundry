@@ -29,6 +29,12 @@ contract DSCEngineTest is Test {
         (ethUsdPriceFeed, , weth, ,) = helperConfig.activeNetworkConfig();
     }
 
+    // Simple Function - Can be removed
+    function testDscSymbol() public view {
+        string memory expectedSymbol = "DSC";
+        string memory actualSymbol = dsc.symbol();
+        assertEq(actualSymbol, expectedSymbol, "Mismatch in the token symbol");
+    }
 
     //////////////////
     // Price Tests //
