@@ -88,6 +88,7 @@ contract DSCEngine {
     ///////////////////
 
     event CollateralDeposited(address indexed user, address indexed token, uint256 indexed amount);
+    event CollateralRedeemed(address indexed user, address indexed token, uint256 indexed amount);
 
     //////////////////
     //   Modifiers  //
@@ -132,13 +133,27 @@ contract DSCEngine {
     ///////////////////////
 
     /*
+        * @param tokenCollateralAddress: the address of the token to deposit as collateral
+        * @param amountCollateral: The amount of collateral to deposit
+        * @param amountDscToMint: The amount of DecentralizedStableCoin to mint
+        * @notice: This function will deposit your collateral and mint DSC in one transaction
+    */
+    function depositCollateralAndMintDSC(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountDscToMint) external {
+        
+        depositCollateral(tokenCollateralAddress, amountCollateral);
+        mintDSC(amountDscToMint);
+    }
+
+
+
+    /*
      * @param tokenCollateralAddress: The ERC20 token address of the collateral you're depositing
      * @param amountCollateral: The amount of collateral you're depositing
      */
 
 
     function depositCollateral(address tokenCollateralAddress, uint256 amountCollateral)
-        external moreThanZero(amountCollateral) isAllowedToken(tokenCollateralAddress)  {
+        public moreThanZero(amountCollateral) isAllowedToken(tokenCollateralAddress)  {
 
             s_collateralDeposited[msg.sender][tokenCollateralAddress] += amountCollateral;
             emit CollateralDeposited(msg.sender, tokenCollateralAddress, amountCollateral);
@@ -162,6 +177,26 @@ contract DSCEngine {
             revert DSCEngine__MintFailed();
         }
     }
+
+
+    /*
+     * @param tokenCollateralAddress: The ERC20 token address of the collateral you're redeeming
+     * @param amountCollateral: The amount of collateral you're redeeming
+     * @notice This function will redeem your collateral.
+     * @notice If you have DSC minted, you will not be able to redeem until you burn your DSC
+     */
+    function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral) external moreThanZero(amountCollateral) {
+        s_collateralDeposited[msg.sender][tokenCollateralAddress] -= amountCollateral;
+        emit CollateralRedeemed(msg.sender, tokenCollateralAddress, amountCollateral);
+
+        bool success = IERC20(tokenCollateralAddress).transfer(msg.sender, amountCollateral);
+        if(!success) {
+            revert DSCEngine__TransferFailed();
+        }
+
+        _revertIfHealthFactorIsBroken(msg.sender);
+    }
+
 
 
      /////////////////////////////////////////////
@@ -220,12 +255,10 @@ contract DSCEngine {
 
 //-------------------------Yet to complete Func's ----------------------------------------------------------------
 
-    function depositCollateralAndMintDSC() external {}
-
+   
     function redeemCollateralForDSC() external {}
 
-    function redeemCollateral() external {}
-
+   
     
 
     function burnDSC() external {}
