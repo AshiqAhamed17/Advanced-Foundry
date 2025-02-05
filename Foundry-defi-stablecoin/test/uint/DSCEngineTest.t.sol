@@ -16,6 +16,7 @@ contract DSCEngineTest is Test {
     HelperConfig helperConfig;
     address weth;
     address ethUsdPriceFeed;
+    address btcUsdPriceFeed;
 
     address public USER = makeAddr("user");
     uint256 public constant AMOUNT_COLLATERAL = 10 ether;
@@ -36,6 +37,25 @@ contract DSCEngineTest is Test {
         assertEq(actualSymbol, expectedSymbol, "Mismatch in the token symbol");
     }
 
+
+     /////////////////////////////
+    ///   Constructor Tests   ///
+    /////////////////////////////
+
+    address[] public tokenAddress;
+    address[] public priceFeedAddress;
+
+    function testRevertIfTokenLengthDoesntMatchPriceFeed() public {
+        tokenAddress.push(weth);
+        priceFeedAddress.push(ethUsdPriceFeed);
+        priceFeedAddress.push(btcUsdPriceFeed);
+
+        vm.expectPartialRevert(DSCEngine.DSCEngine__TokenAddressesAndPriceFeedAddressesAmountsDontMatch.selector);
+
+        new DSCEngine(tokenAddress, priceFeedAddress, address(dsc));
+    }
+
+
     //////////////////
     // Price Tests //
     //////////////////
@@ -45,7 +65,14 @@ contract DSCEngineTest is Test {
         uint256 ethAmount = 15e18;
         uint256 expectedUsd = 30000e18;
         uint256 actualUsd = dscEngine.getUsdValue(weth, ethAmount);
-        assertEq(actualUsd, expectedUsd);
+        assertEq(actualUsd, expectedUsd, "Mismatch in the token amount");
+    }
+
+    function testGetTokenAmountFromUsd() public view {
+        uint256 usdAmount = 100 ether;
+        uint256 expectedWeth = 0.05 ether;
+        uint256 actualweth = dscEngine.getTokenAmountFromUsd(weth, usdAmount);
+        assertEq(actualweth, expectedWeth, "Mismatch in the token amount");
     }
 
     ////////////////////////////////////
@@ -61,4 +88,34 @@ contract DSCEngineTest is Test {
         vm.stopPrank();
     }
 
-}    
+    function testRevertsWithUnapprovedCollateral() public {
+        ERC20Mock ranToken = new ERC20Mock();
+        ranToken.mint(USER, AMOUNT_COLLATERAL);
+
+        vm.startPrank(USER);
+        vm.expectRevert(abi.encodeWithSelector(DSCEngine.DSCEngine__TokenNotAllowed.selector, address(ranToken)));
+        dscEngine.depositCollateral(address(ranToken), AMOUNT_COLLATERAL);
+        vm.stopPrank();
+    }
+
+    modifier depositedCollateral() {
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(dscEngine), AMOUNT_COLLATERAL);
+        ERC20Mock(weth).mint(USER, AMOUNT_COLLATERAL);
+        dscEngine.depositCollateral(weth, AMOUNT_COLLATERAL);
+        vm.stopPrank();
+        _;
+    }
+
+    function testCanDepositCollateralAndGetAccountInfo() public depositedCollateral{
+        (uint256 totalDscMinted, uint256 collateralValueInUsd) = dscEngine.getAccountInformation(USER);
+
+        uint256 exceptedTotalDscMinted = 0;
+        uint256 exceptedDepositAmount = dscEngine.getTokenAmountFromUsd(weth, collateralValueInUsd);
+
+        assertEq(exceptedTotalDscMinted, totalDscMinted, "Mismatch in the token amount");
+        assertEq(AMOUNT_COLLATERAL, exceptedDepositAmount, "Mismatch in the token amount");
+
+    }
+
+}
