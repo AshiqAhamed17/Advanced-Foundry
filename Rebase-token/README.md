@@ -1,66 +1,65 @@
-## Foundry
+# Cross-Chain Rebase Token
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+1. A protocol that allows users to deposit into a vault in return, receiver rebase tokens that represents the underlying balance
 
-Foundry consists of:
+2. Rebase-token -> balanceOf function is dynamic to show the changing balance with time.
+    - Balance increase linearly with time.
+    - Mint token to the users every time they perform an action (minting, burning, transferring, or ... bridging).
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+3. Interest Rate
+    - Individually set an interest rate or each user based on some global interest rate of the protocol at the time at user deposits into vault.
+    - This global interest rate can only decrease to incetivise/rewards early adopters.
+    - Increase Token Adoption!
 
-## Documentation
+---
 
-https://book.getfoundry.sh/
 
-## Usage
+## 🔹 How It Works
 
-### Build
+### 1️⃣ Vault-Based Deposits
+- Users deposit assets like **ETH or USDC** into the vault.
+- They receive **rebase tokens** (e.g., `rETH`).
+- Over time, their **rETH balance increases automatically**.
 
-```shell
-$ forge build
-```
+🛠 **Example:**
+- Alice deposits **10 ETH** → Receives **10 rETH**.
+- After **1 month** (with 5% APY) → Balance becomes **10.41 rETH**.
 
-### Test
+---
 
-```shell
-$ forge test
-```
+### 2️⃣ Dynamic `balanceOf()`
+Unlike standard ERC20 tokens, **rebase tokens do not store balances**. Instead, the **balance is calculated dynamically**.
 
-### Format
+- Balance **updates automatically** using a time-weighted formula.
+- Whenever users **mint, burn, transfer, or bridge**, the balance adjusts.
 
-```shell
-$ forge fmt
-```
+🛠 **Example:**
+- Alice has **10 rETH**.
+- After **30 days**, `balanceOf(Alice)` shows **10.41 rETH**.
 
-### Gas Snapshots
+---
 
-```shell
-$ forge snapshot
-```
+### 3️⃣ Interest Rate Model
+- A **global interest rate** is set when users deposit.
+- This **rate decreases over time** to **reward early adopters**.
+- The **longer you hold**, the **more rewards you get**.
 
-### Anvil
+🛠 **Example:**
+- Alice deposits first → **5% APY**.
+- Bob deposits later → **3% APY** (since more users joined).
+- Alice earns **more over time**.
 
-```shell
-$ anvil
-```
+---
 
-### Deploy
+### 4️⃣ Cross-Chain Bridging
+Rebase tokens **maintain their rebasing effect across chains**.
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
+- **Burn & Mint Model**: Tokens are **burned on Chain A** and **minted on Chain B**.
+- **Liquidity Pool Model**: Uses **cross-chain liquidity pools** instead of burning.
 
-### Cast
+🛠 **Example:**
+- Alice has **10 rETH on Ethereum**.
+- She bridges to **Arbitrum**.
+- Her balance continues **growing at the same rate**.
 
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+---
