@@ -38,8 +38,10 @@ contract InvariantsTest is StdInvariant, Test {
         uint256 wethValue = dsce.getUsdValue(weth, totalWethDeposited);
         uint256 wbtcValue = dsce.getUsdValue(wbtc, totoalWbtcDeposited);
 
+        console.log("weth value: ", wethValue);
+        //console.log("wbtc value: ", wbtcValue);
         console.log("total Supply: ", totalSupply);
-
+        console.log("Times Mint Called: ", handler.timesMintIsCalled());
         assert(wethValue + wbtcValue >= totalSupply);
         
         
