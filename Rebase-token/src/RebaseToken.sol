@@ -72,12 +72,12 @@ contract RebaseToken is ERC20 {
      * @param _newInterestRate The new interest rate to set
      * @dev The interest rate can only decrease
      */
-
     function setInterestRate(uint256 _newInterestRate) external {
-        // Set the interest rate
+        // The _newInterestRate can only decrease
         if(_newInterestRate >= s_interestRate) {
             revert RebaseToken__InterestRateCanOnlyDecrease(s_interestRate, _newInterestRate);
         }
+        // Set the interest rate
         s_interestRate = _newInterestRate;
         emit InterestRateSet(_newInterestRate);
     }
@@ -87,16 +87,29 @@ contract RebaseToken is ERC20 {
      * updated stored balance, which does not consider the perpetually accruing interest that has not yet been minted.
      * @param _user the address of the user
      * @return the principal balance of the user
-     *
      */
     function principalBalanceOf(address _user) external view returns (uint256) {
         return super.balanceOf(_user);
     }
 
+
+    // @notice Mints new tokens for a given address. Called when a user either deposits or bridges tokens to this chain.
+    // @param _to The address to mint the tokens to.
+    // @param _value The number of tokens to mint.
+    // @param _userInterestRate The interest rate of the user. This is either the contract interest rate if the user is depositing or the user's interest rate from the source token if the user is bridging.
+    // @dev this function increases the total supply.
     function mint(address _to, uint256 _amount) external {
-        _mintAccuredInterest(_to);
+        _mintAccruedInterest(_to);
         s_userInterestRate[_to] = s_interestRate;
         _mint(_to, _amount);
+    }
+
+    function burn(address _from, uint256 _amount) external {
+        if(_amount == type(uint256).max) {
+            _amount = balanceOf(_from);
+        }
+        _mintAccruedInterest(_from);
+        _burn(_from, _amount);
     }
 
     /**
@@ -118,10 +131,16 @@ contract RebaseToken is ERC20 {
      * @param _user the address of the user for which the interest is being minted
      *
      */
-    function _mintAccuredInterest(address _user) internal {
+    function _mintAccruedInterest(address _user) internal {
+        uint256 previousPrincipleBalance = super.balanceOf(_user);
+
+        uint256 currentBalance = balanceOf(_user);
+
+        uint256 balanceIncrease = currentBalance - previousPrincipleBalance;
 
         // Update the user's last updated timestamp to reflect this most recent time their interest was minted to them.
         s_userLastUpdatedTimestamp[_user] = block.timestamp;
+        _mint(_user, balanceIncrease);
     }
 
     /**
