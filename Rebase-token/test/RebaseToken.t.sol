@@ -87,12 +87,90 @@ contract RebaseTokenTest is Test {
         // check the balance has increased after some time has passed
         vm.warp(time);
 
-         // Get balance after time has passed
+        // Get balance after time has passed
         uint256 balance = rebaseToken.balanceOf(user);
-         // Add rewards to the vault
+
+        // Add rewards to the vault
+        vm.deal(owner, balance - depositAmount);
+        vm.prank(owner);
+        addRewardsToVault(balance - depositAmount);
+
+        // Redeem
+        vm.prank(user);
+        vault.redeem(balance);
+
+        uint256 ethBalance = address(user).balance;
+
+        assertEq(balance, ethBalance, "Balance Mismatch");
+        assertGe(balance, depositAmount, "Balance Mismatch");
+
+    }
+
+    function testTransfer(uint256 amount, uint256 amountToSend) public {
+        amount = bound(amount, 1e5 + 1e3, type(uint96).max);
+        amountToSend = bound(amountToSend, 1e5, amount - 1e3);
+
+        vm.deal(user, amount);
+        vm.prank(user);
+        vault.deposit{value: amount}();
+
+        address userTwo = makeAddr("userTwo");
+        uint256 userBalance = rebaseToken.balanceOf(user);
+        uint256 userTwoBalance = rebaseToken.balanceOf(userTwo);
+        assertEq(userBalance, amount);
+        assertEq(userTwoBalance, 0);
+
+        uint256 initialInterestRate = rebaseToken.getInterestRate();
+        assertEq(initialInterestRate, 5e10);
+
+        // Update the interest rate so we can check the user interest rates are different after transferring.
+        vm.prank(owner);
+        rebaseToken.setInterestRate(4e10);
+
+        // Send half the balance to another user
+        vm.prank(user);
+        rebaseToken.transfer(userTwo, amountToSend);
+        uint256 userBalanceAfterTransfer = rebaseToken.balanceOf(user);
+        uint256 userTwoBalancAfterTransfer = rebaseToken.balanceOf(userTwo);
+        assertEq(userBalanceAfterTransfer, userBalance - amountToSend);
+        assertEq(userTwoBalancAfterTransfer, userTwoBalance + amountToSend);
+
+    }
+
+    function testCannotMintAndBurn() public {
+        vm.prank(user);
+        vm.expectRevert();
+        rebaseToken.mint(user, 1000);
+
+        vm.expectRevert();
+        rebaseToken.burn(user, 1000);
 
 
     }
+
+    function testCannotSetInterestRate(uint256 newInterestRate) public {
+        vm.prank(user);
+        vm.expectRevert();
+        rebaseToken.setInterestRate(newInterestRate);
+    }
+
+    function testGetPrincipleAmount(uint256 amount) public {
+        amount = bound(amount, 1e5, type(uint96).max);
+        vm.deal(user, amount);
+        vm.prank(user);
+        vault.deposit{value: amount}();
+
+        assertEq(rebaseToken.principalBalanceOf(user), amount);
+
+        vm.warp(block.timestamp + 1 hours);
+        assertEq(rebaseToken.principalBalanceOf(user), amount);
+    }
+
+    function testInitialInterestRate() public view{
+    uint256 initialRate = rebaseToken.getInterestRate();
+    console.log("Initial Interest Rate:", initialRate);
+    assertEq(initialRate, 5e10); // ✅ Should match expected value
+}
 
 
 }
