@@ -20,9 +20,11 @@ contract RebaseTokenTest is Test {
         rebaseToken = new RebaseToken();
         vault = new Vault(IRebaseToken(address(rebaseToken)));
         rebaseToken.grantMintAndBurnRole(address(vault));
-        (bool success, ) = payable(address(vault)).call{value: 1e18}("");
-        //require(success, "Error in calling low-level call function");
         vm.stopPrank();
+    }
+
+    function addRewardsToVault(uint256 rewardAmount) public {
+        (bool success, ) = payable(address(vault)).call{value: rewardAmount}("");
     }
 
     function testDepositLinear(uint amount) public {
@@ -69,6 +71,26 @@ contract RebaseTokenTest is Test {
         assertEq(rebaseToken.balanceOf(user), 0, "Balance Mismatch");
         assertEq(address(user).balance, amount);
         vm.stopPrank();
+
+    }
+
+    function testRedeemAfterTimeHasPassed(uint256 depositAmount, uint256 time) public {
+
+        depositAmount = bound(depositAmount, 1e5, type(uint96).max);
+        time = bound(time, 1000, type(uint96).max);
+
+        // Deposit Funds
+        vm.deal(user, depositAmount);
+        vm.prank(user);
+        vault.deposit{value: depositAmount}();
+
+        // check the balance has increased after some time has passed
+        vm.warp(time);
+
+         // Get balance after time has passed
+        uint256 balance = rebaseToken.balanceOf(user);
+         // Add rewards to the vault
+
 
     }
 
