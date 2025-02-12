@@ -47,9 +47,9 @@ contract RebaseToken is ERC20, Ownable, AccessControl {
     //////////////////////
     // State Variables //
     /////////////////////
-    uint256 private constant PRECISION_FACTOR = 1e18;
+    uint256 private constant PRECISION_FACTOR = 1e27;
     bytes32 private constant MINT_AND_BURN_ROLE = keccak256("MINT_AND_BURN_ROLE");
-    uint256 private s_interestRate = 5e10; // Global interest rate of the token.
+    uint256 private s_interestRate = (5 * PRECISION_FACTOR) / 1e18; // Global interest rate of the token.
     mapping(address => uint256) private s_userInterestRate; // Keeps track of the interest rate of the user at the time they last deposited, bridged or were transferred tokens.
     mapping(address => uint256) private s_userLastUpdatedTimestamp; // the last time a user balance was updated to mint accrued interest.
 
@@ -114,9 +114,6 @@ contract RebaseToken is ERC20, Ownable, AccessControl {
     }
 
     function burn(address _from, uint256 _amount) external onlyRole(MINT_AND_BURN_ROLE) {
-        if(_amount == type(uint256).max) {
-            _amount = balanceOf(_from);
-        }
         _mintAccruedInterest(_from);
         _burn(_from, _amount);
     }
