@@ -187,6 +187,7 @@ contract RebaseTokenTest is Test {
         uint256 initialRate = rebaseToken.getInterestRate();
         console.log("Initial Interest Rate:", initialRate);
         assertEq(initialRate, 5e10); // ✅ Should match expected value
+        
     }
 
 
