@@ -166,11 +166,28 @@ contract RebaseTokenTest is Test {
         assertEq(rebaseToken.principalBalanceOf(user), amount);
     }
 
+    function testInterestRateCanOnlyDecrease(uint256 newInterestRate) public {
+        uint256 initialInterestRate = rebaseToken.getInterestRate();
+        newInterestRate = bound(newInterestRate, initialInterestRate, type(uint96).max);
+
+        vm.prank(owner);
+        vm.expectPartialRevert(bytes4(RebaseToken.RebaseToken__InterestRateCanOnlyDecrease.selector));
+        rebaseToken.setInterestRate(newInterestRate);
+        assertEq(rebaseToken.getInterestRate(), initialInterestRate);
+
+    }
+
+    
+
+    function testGetRebaseTokenAddress() public view {
+        assertEq(vault.getRebaseTokenAddress(), address(rebaseToken));
+    }
+
     function testInitialInterestRate() public view{
-    uint256 initialRate = rebaseToken.getInterestRate();
-    console.log("Initial Interest Rate:", initialRate);
-    assertEq(initialRate, 5e10); // ✅ Should match expected value
-}
+        uint256 initialRate = rebaseToken.getInterestRate();
+        console.log("Initial Interest Rate:", initialRate);
+        assertEq(initialRate, 5e10); // ✅ Should match expected value
+    }
 
 
 }
