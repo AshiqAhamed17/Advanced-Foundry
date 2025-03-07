@@ -16,4 +16,8 @@ contract Deposit {
         require(s, "Failed to send");
     }
 
+    // function changeBalance(address depositor, uint256 amount) public {
+    //     balances[depositor] = amount;
+    // }
+
 }

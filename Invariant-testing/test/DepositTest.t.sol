@@ -13,13 +13,20 @@ contract DepositTest is Test {
     }
 
     function invariant_alwaysWithdrawable() public {
+        address user = address(0xaa);
+        vm.startPrank(user);
+        vm.deal(user, 10 ether);
+
         deposit.deposit{value: 1 ether}();
-        uint256 balanceBefore  = deposit.balances(address(this));
+        uint256 balanceBefore  = deposit.balances(user);
+        vm.stopPrank();
 
         assertEq(balanceBefore, 1 ether, "Balance before mismatch");
 
+        vm.prank(user);
         deposit.withdraw();
-        uint256 balanceAfter = deposit.balances(address(this));
+        uint256 balanceAfter = deposit.balances(user);
+        vm.stopPrank();
         assertGt(balanceBefore, balanceAfter); 
     }
 
