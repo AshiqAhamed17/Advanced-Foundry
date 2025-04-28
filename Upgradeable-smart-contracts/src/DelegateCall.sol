@@ -5,7 +5,7 @@ contract B {
     // Storage layout must be same in both the contracts
     uint256 public num;
     address public sender;
-
+    
     function setNum(uint256 _num) public {
         num = _num;
         sender = msg.sender;
@@ -14,6 +14,7 @@ contract B {
 }
 
 contract A {
+    
     uint256 public num;
     address public sender;
 
