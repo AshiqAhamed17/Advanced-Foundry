@@ -49,3 +49,6 @@
 [submodule "Upgradeable-smart-contracts/lib/openzeppelin-contracts"]
 	path = Upgradeable-smart-contracts/lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "Upgradeable-smart-contracts/lib/openzeppelin-contracts-upgradeable"]
+	path = Upgradeable-smart-contracts/lib/openzeppelin-contracts-upgradeable
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable
