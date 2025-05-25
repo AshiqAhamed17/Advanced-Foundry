@@ -52,3 +52,6 @@
 [submodule "Upgradeable-smart-contracts/lib/openzeppelin-contracts-upgradeable"]
 	path = Upgradeable-smart-contracts/lib/openzeppelin-contracts-upgradeable
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable
+[submodule "Adv-Testing/lib/forge-std"]
+	path = Adv-Testing/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
